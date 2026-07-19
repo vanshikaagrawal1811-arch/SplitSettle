@@ -1,3 +1,4 @@
+
 ```markdown
 # SplitSettle — Debt-Simplification Engine for Group Expenses
 
@@ -8,22 +9,30 @@ engine computes the minimum number of transactions required to settle every
 balance to zero, using a greedy max-heap matching algorithm.
 
 ## Demo
-**Settlement plan** — the minimized list of payments produced by the
-debt-simplification algorithm.
-![Settlement plan](docs/screenshots/settlement-plan.png)
 
-**Balances** — per-person balances computed from all logged expenses.
-![Balances](docs/screenshots/balances.png)
+<!-- Add screenshots to docs/screenshots/ before publishing -->
 
-**Startup** — load an existing group or create a new one; data persists
-across runs via SQLite.
-![Startup flow](docs/screenshots/startup.png)
+A walkthrough of a typical session, in order.
 
-**Add expense** — payer, description, amount, and split selection.
+### 1. Start the app
+Choose to load an existing group or create a new one. Data persists across
+runs via SQLite.
+![Startup](docs/screenshots/startup.png)
+
+### 2. Log an expense
+Enter the payer, description, amount, and participants.
 ![Add expense](docs/screenshots/add-expense.png)
 
+### 3. View balances
+Per-person net position, computed from all logged expenses.
+![Balances](docs/screenshots/balances.png)
+
+### 4. View the settlement plan
+The minimized set of payments produced by the debt-simplification algorithm.
+![Settlement plan](docs/screenshots/settlement-plan.png)
+
 ## Stack
-- Java 17, JDBC, SQLite — no ORM, no framework, no server dependency
+- Java 17, JDBC, SQLite
 - Command-line interface (Scanner-based)
 - JUnit 5 for algorithm tests
 
