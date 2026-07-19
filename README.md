@@ -82,30 +82,21 @@ SELECT * FROM group_membership WHERE group_name = 'Goa Trip';
 ```
 
 ## Design Notes
+## Design Notes
 
-### Algorithm
-Greedy heap-based matching (max-heap of creditors, min-heap of debtors). Guarantees at most **n − 1** transactions for **n** people and runs in **O(n log n)**.
+- **Algorithm:** Greedy heap-based matching (max-heap of creditors, min-heap of debtors). Guarantees at most **n − 1** transactions for **n** people and runs in **O(n log n)**.
 
-### Rounding
-Equal splits use `BigDecimal` with remainder distribution so shares always sum exactly to the original amount.
+- **Rounding:** Equal splits use `BigDecimal` with remainder distribution so shares always sum exactly to the original amount.
 
-### Schema
-`users`, `groups`, and a `group_members` join table model the many-to-many relationship between people and groups. `group_membership` is a read-only view for convenience.
+- **Schema:** `users`, `groups`, and a `group_members` join table model the many-to-many relationship between people and groups. `group_membership` is a read-only view for convenience.
 
-### Persistence
-SQLite, chosen for a single-user CLI tool to avoid server setup and credential management.
+- **Persistence:** SQLite, chosen for a single-user CLI tool to avoid server setup and credential management.
 
-### Schema Initialization
-`SchemaInitializer` runs `CREATE TABLE IF NOT EXISTS` statements on every startup, so the schema is created once and existing data is left untouched thereafter.
+- **Schema Initialization:** `SchemaInitializer` runs `CREATE TABLE IF NOT EXISTS` statements on every startup, so the schema is created once and existing data is left untouched thereafter.
 
-### Data Access
-Raw JDBC, with explicit transaction boundaries (`commit`/`rollback`) around multi-table writes such as expense creation and group creation.
+- **Data Access:** Raw JDBC, with explicit transaction boundaries (`commit`/`rollback`) around multi-table writes such as expense creation and group creation.
 
-### Error Handling
-A `SplitSettleException` hierarchy (`UnbalancedSharesException`, `UnbalancedLedgerException`, `InvalidExpenseException`, and `UnknownUserException`) separates expected domain-rule violations from unexpected failures such as `SQLException`.
+- **Error Handling:** A `SplitSettleException` hierarchy (`UnbalancedSharesException`, `UnbalancedLedgerException`, `InvalidExpenseException`, and `UnknownUserException`) separates expected domain-rule violations from unexpected failures such as `SQLException`.
 
-### Use case
-The netting pattern applied here — minimizing transactions across many
-bilateral debts — is the same principle used at larger scale in payment
-platforms and interbank settlement systems.
+- **Use Case:** The netting pattern applied here—minimizing transactions across many bilateral debts—is the same principle used at larger scale in payment platforms and interbank settlement systems.
 ```
