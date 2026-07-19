@@ -21,17 +21,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Command-line interface for SplitSettle.
- * Run: mvn compile exec:java -Dexec.mainClass=com.splitsettle.Main
- *
- * Backed by SQLite -- no server to install, no credentials to configure.
- * The database file (splitsettle.db) is created automatically on first run.
- */
 public class Main {
 
-    // Plain-ASCII currency prefix and arrow -- avoids "?" showing up on
-    // terminals/JVMs that aren't configured for UTF-8 output.
     private static final String CUR = "Rs. ";
     private static final String ARROW = "->";
     private static final String DIVIDER = "-----------------------------------------";
@@ -46,8 +37,6 @@ public class Main {
     private static Group activeGroup;
 
     public static void main(String[] args) {
-        // Force UTF-8 on stdout, in case names/descriptions contain non-ASCII
-        // characters (e.g. accented names). Harmless if already UTF-8.
         System.setOut(new PrintStream(System.out, true, StandardCharsets.UTF_8));
 
         printBanner();
@@ -76,7 +65,7 @@ public class Main {
             try {
                 choice = scanner.nextLine().trim();
             } catch (NoSuchElementException e) {
-                break; // input stream closed (e.g. piped input ran out, or Ctrl+D)
+                break;
             }
             try {
                 switch (choice) {
@@ -98,8 +87,6 @@ public class Main {
         System.out.println("\nGoodbye - see you next settle-up!");
     }
 
-    // ---------- setup ----------
-
     private static void printBanner() {
         System.out.println("=================================");
         System.out.println("        SplitSettle CLI");
@@ -109,7 +96,6 @@ public class Main {
         System.out.println("(data is stored locally in splitsettle.db)\n");
     }
 
-    /** Entry point into group setup: offers to load an existing group if any are on file. */
     private static void chooseGroup() throws SQLException {
         List<GroupDAO.GroupSummary> existing = groupDAO.findAll();
 
@@ -133,7 +119,6 @@ public class Main {
         }
     }
 
-    /** true if the user picked a group; loops back to the picker on bad input. */
     private static boolean loadExistingGroup(List<GroupDAO.GroupSummary> existing) throws SQLException {
         System.out.println("\nExisting groups:");
         System.out.println(DIVIDER);
@@ -173,7 +158,7 @@ public class Main {
 
         System.out.println("\nNow let's add the people in your group.\n");
         List<User> members = new ArrayList<>();
-        Set<String> namesUsed = new HashSet<>(); // lower-cased, scoped to this group
+        Set<String> namesUsed = new HashSet<>();
 
         while (true) {
             System.out.print("Member name (or press Enter when done): ");
@@ -186,7 +171,7 @@ public class Main {
             }
 
             if (!isValidPersonName(name)) {
-                System.out.println("  [!] Names can only contain letters, spaces, hyphens or apostrophes - try again.\n");
+                System.out.println("  [!] Names can only contain letters - try again.\n");
                 continue;
             }
 
@@ -207,7 +192,6 @@ public class Main {
         members.forEach(m -> System.out.println("  #" + m.getId() + "  " + m.getName()));
     }
 
-    /** Loops until the person enters a group name that isn't already taken (case-insensitive). */
     private static String readUniqueGroupName(String prompt) throws SQLException {
         while (true) {
             String name = readNonEmpty(prompt);
@@ -219,12 +203,9 @@ public class Main {
         }
     }
 
-    /** Letters, spaces, hyphens and apostrophes only -- no digits or other symbols. */
     private static boolean isValidPersonName(String name) {
-        return name.matches("[A-Za-z][A-Za-z '-]*");
+        return name.matches("[A-Za-z]+");
     }
-
-    // ---------- menu ----------
 
     private static void printMenu() {
         System.out.println("\n" + DIVIDER);
@@ -239,8 +220,6 @@ public class Main {
         System.out.println("7. Exit");
         System.out.print("> ");
     }
-
-    // ---------- actions ----------
 
     private static void addExpense() throws SQLException {
         List<User> members = activeGroup.getMembers();
@@ -270,7 +249,7 @@ public class Main {
         while (true) {
             name = readNonEmpty("New member's name: ");
             if (!isValidPersonName(name)) {
-                System.out.println("  [!] Names can only contain letters, spaces, hyphens or apostrophes - try again.");
+                System.out.println("  [!] Names can only contain letters - try again.");
                 continue;
             }
             final String candidate = name;
@@ -294,12 +273,11 @@ public class Main {
         Map<Integer, BigDecimal> balances = getBalances();
         List<User> members = activeGroup.getMembers();
 
-        // Sort: biggest creditors first, then biggest debtors, settled-up last.
         List<User> sorted = new ArrayList<>(members);
         sorted.sort((a, b) -> {
             BigDecimal balA = balances.getOrDefault(a.getId(), BigDecimal.ZERO);
             BigDecimal balB = balances.getOrDefault(b.getId(), BigDecimal.ZERO);
-            return balB.compareTo(balA); // descending: most owed -> most owing
+            return balB.compareTo(balA);
         });
 
         System.out.println("\nBalances (+ owed money, - owes money):");
@@ -386,8 +364,6 @@ public class Main {
         String confirm = scanner.nextLine().trim();
         return !confirm.equalsIgnoreCase("y");
     }
-
-    // ---------- helpers ----------
 
     private static Map<Integer, BigDecimal> getBalances() throws SQLException {
         Map<Integer, BigDecimal> paid = expenseDAO.getTotalPaidPerUser(activeGroup.getId());
