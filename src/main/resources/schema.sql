@@ -49,3 +49,12 @@ CREATE TABLE IF NOT EXISTS settlements (
     FOREIGN KEY (from_user) REFERENCES users(id),
     FOREIGN KEY (to_user) REFERENCES users(id)
 );
+
+CREATE VIEW IF NOT EXISTS group_membership AS
+    SELECT g.id   AS group_id,
+           g.name AS group_name,
+           u.id   AS user_id,
+           u.name AS member_name
+    FROM group_members gm
+    JOIN groups g ON g.id = gm.group_id
+    JOIN users u ON u.id = gm.user_id;
