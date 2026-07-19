@@ -1,4 +1,3 @@
-
 ```markdown
 # SplitSettle — Debt-Simplification Engine for Group Expenses
 
@@ -32,7 +31,7 @@ The minimized set of payments produced by the debt-simplification algorithm.
 ![Settlement plan](docs/screenshots/settlement-plan.png)
 
 ## Stack
-- Java 17, JDBC, SQLite
+- Java 17, JDBC, SQLite — no ORM, no framework, no server dependency
 - Command-line interface (Scanner-based)
 - JUnit 5 for algorithm tests
 
