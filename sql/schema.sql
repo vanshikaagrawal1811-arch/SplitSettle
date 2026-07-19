@@ -1,9 +1,6 @@
--- SQLite schema for SplitSettle.
--- Load with:  sqlite3 splitsettle.db < sql/schema.sql
--- (or let the app create it automatically on first run -- see below)
-
 PRAGMA foreign_keys = OFF;
 
+DROP VIEW IF EXISTS group_membership;
 DROP TABLE IF EXISTS settlements;
 DROP TABLE IF EXISTS expense_shares;
 DROP TABLE IF EXISTS expenses;
@@ -32,7 +29,6 @@ CREATE TABLE group_members (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- One expense = one person paid a total amount, split across the group.
 CREATE TABLE expenses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER NOT NULL,
@@ -44,7 +40,6 @@ CREATE TABLE expenses (
     FOREIGN KEY (paid_by) REFERENCES users(id)
 );
 
--- How the expense splits across members. sum(share_amount) must equal expenses.amount.
 CREATE TABLE expense_shares (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     expense_id INTEGER NOT NULL,
@@ -54,7 +49,6 @@ CREATE TABLE expense_shares (
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
--- A settlement is a "simplified" payment instruction produced by the algorithm.
 CREATE TABLE settlements (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER NOT NULL,
@@ -67,3 +61,12 @@ CREATE TABLE settlements (
     FOREIGN KEY (from_user) REFERENCES users(id),
     FOREIGN KEY (to_user) REFERENCES users(id)
 );
+
+CREATE VIEW group_membership AS
+    SELECT g.id   AS group_id,
+           g.name AS group_name,
+           u.id   AS user_id,
+           u.name AS member_name
+    FROM group_members gm
+    JOIN groups g ON g.id = gm.group_id
+    JOIN users u ON u.id = gm.user_id;
